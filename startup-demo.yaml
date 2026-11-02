@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: startup-demo
+  namespace: probes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: startup-demo
+  template:
+    metadata:
+      labels:
+        app: startup-demo
+    spec:
+      terminationGracePeriodSeconds: 2
+      containers:
+      - name: app
+        image: kaizenacademy/demo-app:1.0.0
+        env:
+        - name: STARTUP_SECONDS
+          value: '30'
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          periodSeconds: 5
+          timeoutSeconds: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          periodSeconds: 2
+          timeoutSeconds: 1
+          failureThreshold: 1
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: 8080
+          periodSeconds: 2
+          timeoutSeconds: 30              
